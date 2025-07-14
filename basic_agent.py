@@ -1,12 +1,14 @@
 import os
 import asyncio
+from typing import Union
 import logfire
 from pydantic_ai import Agent
-from tools import get_time_now
 from dotenv import load_dotenv
-from models import ManyResponse
-from prompt import SYSTEM_PROMPT
-from MCPs import inmopipeline_mcp
+from tools.MCPs import inmopipeline_mcp
+from tools.time import get_time_now_tool
+from tools.news import get_news_tool
+from schemas.agent_schema import ResponseModel
+from prompts.basic import SIMPLE_SYSTEM_PROMPT
 from pydantic_ai.providers.google_gla import GoogleGLAProvider
 from pydantic_ai.models.gemini import GeminiModel, GeminiModelSettings
 
@@ -23,20 +25,19 @@ API_KEY = os.getenv("GEMINI_API")
 
 # _______________________________Definimos el modelo____________________________
 model = GeminiModel(
-    "gemini-2.0-flash", # Definimos el modelo
+    "gemini-2.5-pro", # Definimos el modelo
     provider=GoogleGLAProvider(API_KEY), # Pasamos la api key
     settings=GeminiModelSettings(      # configuramos el modelo
-        max_tokens=500,
-        temperature=0.0,
+        temperature=0.3,
         top_p=0.0)
 )
 
 # ____________________________ Creamos el agente ______________________________
 agent = Agent(
     model=model,
-    output_type=ManyResponse,
-    system_prompt=(SYSTEM_PROMPT),
-    tools=[get_time_now],
+    output_type=ResponseModel, 
+    system_prompt=(SIMPLE_SYSTEM_PROMPT),
+    tools=[get_time_now_tool,get_news_tool],
     mcp_servers=[inmopipeline_mcp],
     instrument=True,
     retries=2,
@@ -54,9 +55,7 @@ async def response_mcp():
     async with agent.run_mcp_servers():
         
         # Pasamos la pregunta y espereamos
-        response = await agent.run([
-            "Cuantas casas en cartegena que tengan 2 habitaciones?"
-        ])
+        response = await agent.run("Que precio tendria una casa en medellin con 3 habitaciones, 2 baños y 70 metros cuadrados.")
 
         # Volvemos la respuesta en format json
         json_response = response.output.model_dump_json(indent=2)
