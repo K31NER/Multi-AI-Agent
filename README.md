@@ -1,13 +1,14 @@
 # 🤖 Basic AI Agent - Agente de IA Especializado
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![Pydantic AI](https://img.shields.io/badge/Pydantic%20AI-0.4.2-FF6B6B?style=flat&logo=pydantic&logoColor=white)](https://ai.pydantic.dev)
-[![Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Pro-4285F4?style=flat&logo=google&logoColor=white)](https://ai.google.dev)
-[![MCP](https://img.shields.io/badge/Model%20Context%20Protocol-1.11.0-00D4AA?style=flat)](https://modelcontextprotocol.io)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Planned-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Playwright](https://img.shields.io/badge/Playwright-Web%20Scraping-2EAD33?style=flat&logo=playwright&logoColor=white)](https://playwright.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Logfire](https://img.shields.io/badge/Logfire-Observability-FF6B35?style=flat)](https://pydantic.dev/logfire)
+[![Python](https://img.shields.io/badge/_Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Pydantic AI](https://img.shields.io/badge/_Pydantic_AI-0.4.2-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://ai.pydantic.dev)
+[![Gemini](https://img.shields.io/badge/_Google_Gemini-2.5_Pro-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[![MCP](https://img.shields.io/badge/Model_Context_Protocol-1.11.0-00D4AA?style=for-the-badge)](https://modelcontextprotocol.io)
+
+[![Streamlit](https://img.shields.io/badge/_Streamlit-Planned-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Playwright](https://img.shields.io/badge/_Playwright-Scraping-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev)
+[![FastAPI](https://img.shields.io/badge/_FastAPI-0.116.1-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Logfire](https://img.shields.io/badge/Logfire-Observability-FF6B35?style=for-the-badge)](https://pydantic.dev/logfire)
 
 ## 📋 Descripción del Proyecto
 
@@ -25,44 +26,33 @@
 ### 🏗️ Arquitectura Planificada
 
 ```mermaid
-graph LR
-    A[Usuario] --> B[Interfaz Streamlit]
-    B --> C{Selector de Agentes}
+graph TD
+    A[👤 Usuario] --> B[🎨 Interfaz Streamlit]
+    B --> C{🎯 Selector de Agentes}
     
-    C --> D[Agente General]
-    C --> E[Agente de Noticias]
-    C --> F[Agente Inmobiliario]
-    C --> G[Agente Financiero]
-    C --> H[Agente Meteorológico]
+    C --> D[🤖 Agente General]
+    C --> E[📰 Agente Noticias]
+    C --> F[🏠 Agente Inmobiliario]
+    C --> G[💰 Agente Financiero]
     
-    D --> I[Banco de Prompts]
+    D --> H[📝 Banco de Prompts]
+    E --> H
+    F --> H
+    G --> H
+    
+    D --> I[🛠️ Banco de Tools]
     E --> I
     F --> I
     G --> I
-    H --> I
     
-    D --> J[Banco de Tools]
-    E --> J
-    F --> J
-    G --> J
-    H --> J
+    I --> J[⏰ Tool: Tiempo]
+    I --> K[📰 Tool: Noticias]
+    I --> L[🏠 MCP: Inmobiliaria]
     
-    J --> K[Tool: Tiempo]
-    J --> L[Tool: Noticias]
-    J --> M[MCP: Inmobiliaria]
-    J --> N[Tool: Clima]
-    J --> O[Tool: Finanzas]
-    
-    I --> P[Prompt: General]
-    I --> Q[Prompt: Noticias]
-    I --> R[Prompt: Inmobiliario]
-    I --> S[Prompt: Financiero]
-    
-    D --> T[Gemini 2.5 Pro]
-    E --> T
-    F --> T
-    G --> T
-    H --> T
+    D --> M[✨ Gemini 2.5 Pro]
+    E --> M
+    F --> M
+    G --> M
 ```
 
 ## 🛠️ Estado Actual del Desarrollo
