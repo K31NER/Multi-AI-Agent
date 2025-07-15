@@ -45,7 +45,7 @@ agent = Agent(
 
 # _______________________ Funciones de respuesta _____________________
     
-async def response_mcp():
+async def response_mcp(pregunta:str):
     """ 
     Realiza preguntas al agente de forma asincrona \n
     permitiendole usar herramientas mas complejas como MCP 
@@ -55,14 +55,16 @@ async def response_mcp():
     async with agent.run_mcp_servers():
         
         # Pasamos la pregunta y espereamos
-        response = await agent.run("Que precio tendria una casa en medellin con 3 habitaciones, 2 baños y 70 metros cuadrados.")
+        response = await agent.run(pregunta)
 
         # Volvemos la respuesta en format json
         json_response = response.output.model_dump_json(indent=2)
 
         # Mostramos la respuesta
         print(json_response)
+        
+        return json_response
 
 if __name__ == "__main__":
-    asyncio.run(response_mcp())
+    asyncio.run(response_mcp("Que noticas hay el dia de hoy"))
     
