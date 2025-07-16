@@ -25,7 +25,7 @@ API_KEY = os.getenv("GEMINI_API")
 
 # _______________________________Definimos el modelo____________________________
 model = GeminiModel(
-    "gemini-2.5-pro", # Definimos el modelo
+    "gemini-2.0-flash", # Definimos el modelo
     provider=GoogleGLAProvider(API_KEY), # Pasamos la api key
     settings=GeminiModelSettings(      # configuramos el modelo
         temperature=0.3,
@@ -45,6 +45,12 @@ agent = Agent(
 
 # _______________________ Funciones de respuesta _____________________
     
+async def response_agent(pregunta:str):
+    
+    response = await agent.run(pregunta)
+    
+    return response.output.response
+
 async def response_mcp(pregunta:str):
     """ 
     Realiza preguntas al agente de forma asincrona \n
