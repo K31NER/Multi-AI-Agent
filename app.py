@@ -3,7 +3,7 @@ import asyncio
 import nest_asyncio
 import streamlit as st 
 from basic_agent import agent
-from UX.elemts import add_title,add_sidebar
+from UI.elemts import add_title,add_sidebar
 
 st.set_page_config(
     page_title="AI Agent",
@@ -70,7 +70,7 @@ if pregunta:
         except Exception as e:
             st.toast(f"Error al responder: {e}")
             response = "Por favor vuelva a realizar su pregunta"
-            
+            resumen = "No se pudo responder"
         # La agregamos al historial
         st.session_state.chat.append({"role":"assistant","content":response})
         
