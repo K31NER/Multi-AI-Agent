@@ -45,12 +45,6 @@ agent = Agent(
 
 # _______________________ Funciones de respuesta _____________________
     
-async def response_agent(pregunta:str):
-    
-    response = await agent.run(pregunta)
-    
-    return response.output.response
-
 async def response_mcp(pregunta:str):
     """ 
     Realiza preguntas al agente de forma asincrona \n
