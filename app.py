@@ -19,6 +19,22 @@ if sys.platform == "win32":
 # 2. Parche para permitir llamadas anidadas a asyncio.run()
 nest_asyncio.apply()
 
+# Llamas a la función al inicio
+agent_type, temperatura, top_p, top_k, max_token, disable_summary, color = add_sidebar()
+
+# Definimos el titulo
+add_title(titulo="AI Agent",icon="🤖",color=color)
+
+
+# * --------------------- Manejo de historial y de respuestas ------------------ *
+
+# Definimos el historial en la session 
+if "history" not in st.session_state:
+    st.session_state.history = []
+    
+# Instanciamos el historial
+history = st.session_state.history
+
 async def response_mcp(pregunta:str):
     """ 
     Realiza preguntas al agente de forma asincrona \n
@@ -29,16 +45,12 @@ async def response_mcp(pregunta:str):
     async with agent.run_mcp_servers():
         
         # Pasamos la pregunta y espereamos
-        response = await agent.run(pregunta)
+        response = await agent.run(pregunta,message_history=history)
+        
+        # Actualizamos el historial
+        st.session_state.history = response.new_messages()
         
         return response.output.response , response.output.summary
-
-# Llamas a la función al inicio
-agent_type, temperatura, top_p, top_k, max_token, disable_summary, color = add_sidebar()
-
-# Definimos el titulo
-add_title(titulo="AI Agent",icon="🤖",color=color)
-
 
 # * ----------------------------- Chat ------------------------------------ *
 
@@ -66,7 +78,7 @@ if pregunta:
         
         # Enviamos el la pregunta
         try:
-            response,resumen = asyncio.run(response_mcp(pregunta))
+            response, resumen= asyncio.run(response_mcp(pregunta))
         except Exception as e:
             st.toast(f"Error al responder: {e}")
             response = "Por favor vuelva a realizar su pregunta"
