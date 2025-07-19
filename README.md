@@ -27,29 +27,29 @@
 
 ```mermaid
 graph TD
-    A[👤 Usuario] --> B[🎨 Interfaz Streamlit]
-    B --> C{🎯 Selector de Agentes}
+    A[Usuario] --> B[Interfaz Streamlit]
+    B --> C{Selector de Agentes}
     
-    C --> D[🤖 Agente General]
-    C --> E[📰 Agente Noticias]
-    C --> F[🏠 Agente Inmobiliario]
-    C --> G[💰 Agente Financiero]
+    C --> D[Agente General]
+    C --> E[Agente Noticias]
+    C --> F[Agente Inmobiliario]
+    C --> G[Agente Financiero]
     
-    D --> H[📝 Banco de Prompts]
+    D --> H[Banco de Prompts]
     E --> H
     F --> H
     G --> H
     
-    D --> I[🛠️ Banco de Tools]
+    D --> I[Banco de Tools]
     E --> I
     F --> I
     G --> I
     
-    I --> J[⏰ Tool: Tiempo]
-    I --> K[📰 Tool: Noticias]
-    I --> L[🏠 MCP: Inmobiliaria]
+    I --> J[Tool: Tiempo]
+    I --> K[Tool: Noticias]
+    I --> L[MCP: Inmobiliaria]
     
-    D --> M[✨ Gemini 2.5 Pro]
+    D --> M[Gemini 2.5 Pro]
     E --> M
     F --> M
     G --> M
