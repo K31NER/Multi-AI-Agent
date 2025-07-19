@@ -23,6 +23,12 @@ def add_sidebar():
         
         st.subheader("Agente",divider="red")
         
+        # Contexto maximo que soporta el agente
+        contexto = st.number_input("Ventana de contexto",step=1, value=6,
+                                min_value=1,max_value=20,
+                                help="Indica el numero de mensajes que puede recordar el agente",
+                                icon=":material/network_intelligence_history:")
+        
         types = ["Inmobiliario","Noticias","Meteorológico","Financiero"]
         agent_type = st.selectbox("Tipo de agente:",types)
         

@@ -35,6 +35,9 @@ if "history" not in st.session_state:
 # Instanciamos el historial
 history = st.session_state.history
 
+# ! Agregar contexto dinamico
+MAX_HISTORY = 18
+
 async def response_mcp(pregunta:str):
     """ 
     Realiza preguntas al agente de forma asincrona \n
@@ -47,10 +50,17 @@ async def response_mcp(pregunta:str):
         # Pasamos la pregunta y espereamos
         response = await agent.run(pregunta,message_history=history)
         
-        # Actualizamos el historial
-        st.session_state.history = response.new_messages()
+        # Obtenemos todo el historial acumulado
+        all_msgs = response.all_messages()
+
+        # Recortamos los últimos N mensajes
+        trimmed_history = all_msgs[-MAX_HISTORY:]
+
+        # Actualizamos el historial en session_state
+        st.session_state.history = trimmed_history
         
         return response.output.response , response.output.summary
+
 
 # * ----------------------------- Chat ------------------------------------ *
 
@@ -93,3 +103,6 @@ if pregunta:
             if disable_summary:
                 combined = response
             st.markdown(combined)
+
+#with st.sidebar:
+#        st.json(st.session_state.history)
