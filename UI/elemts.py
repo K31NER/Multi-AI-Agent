@@ -47,4 +47,4 @@ def add_sidebar():
         color = st.color_picker("Eliga  un color",value="#F93434")
         
         
-        return agent_type, temperatura, top_p, top_k, max_token, disable_summary, color
+        return contexto, agent_type, temperatura, top_p, top_k, max_token, disable_summary, color
