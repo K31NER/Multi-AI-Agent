@@ -7,11 +7,12 @@ from UI.elemts import add_title,add_sidebar
 
 st.set_page_config(
     page_title="AI Agent",
-    layout="wide",
     page_icon="🤖",
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# * -------------------- Configuracion inicial ---------------------------------
 # 1. En Windows, asegurar que usamos ProactorEventLoop
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
@@ -20,14 +21,16 @@ if sys.platform == "win32":
 nest_asyncio.apply()
 
 # Llamas a la función al inicio
-agent_type, temperatura, top_p, top_k, max_token, disable_summary, color = add_sidebar()
+contexto, agent_type, temperatura, top_p, top_k, max_token, disable_summary, color = add_sidebar()
 
 # Definimos el titulo
 add_title(titulo="AI Agent",icon="🤖",color=color)
 
-
-# * --------------------- Manejo de historial y de respuestas ------------------ *
-
+# *---------------------- Variables de estado ---------------------------------*
+# Definimimso el estado para guardar el historial
+if "chat" not in st.session_state:
+    st.session_state.chat = []
+    
 # Definimos el historial en la session 
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -35,8 +38,14 @@ if "history" not in st.session_state:
 # Instanciamos el historial
 history = st.session_state.history
 
-# ! Agregar contexto dinamico
-MAX_HISTORY = 18
+# Definimos el contexto en el estado de la app
+if "contexto" not in st.session_state or st.session_state.contexto != contexto:
+    st.session_state.contexto = contexto
+
+# * --------------------- Manejo de historial y de respuestas ------------------ *
+
+# ventana de contexto dinamica
+MAX_HISTORY = (st.session_state.contexto * 3) + 1
 
 async def response_mcp(pregunta:str):
     """ 
@@ -64,10 +73,6 @@ async def response_mcp(pregunta:str):
 
 # * ----------------------------- Chat ------------------------------------ *
 
-# Definimimso el estado para guardar el historial
-if "chat" not in st.session_state:
-    st.session_state.chat = []
-
 # mostramos el historial
 for msg in st.session_state.chat:
     with st.chat_message(msg["role"]):
@@ -84,7 +89,7 @@ if pregunta:
         st.markdown(pregunta)
         
     # Esperamos la respuesta del agente
-    with st.spinner("Esperando la respuesta"):
+    with st.spinner("Esperando la respuesta...",show_time=True,_cache=True):
         
         # Enviamos el la pregunta
         try:
@@ -105,4 +110,5 @@ if pregunta:
             st.markdown(combined)
 
 #with st.sidebar:
-#        st.json(st.session_state.history)
+#    st.write(st.session_state.contexto)
+#    st.json(st.session_state.history)
