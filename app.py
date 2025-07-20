@@ -2,7 +2,8 @@ import sys
 import asyncio
 import nest_asyncio
 import streamlit as st 
-from basic_agent import agent
+from pydantic_ai import Agent
+from agents.list_agents import *
 from UI.elemts import add_title,add_sidebar
 
 st.set_page_config(
@@ -25,7 +26,7 @@ contexto, agent_type, temperatura, top_p, top_k, max_token, disable_summary, col
 
 # Definimos el titulo
 add_title(titulo="AI Agent",icon="🤖",color=color)
-
+    
 # *---------------------- Variables de estado ---------------------------------*
 # Definimimso el estado para guardar el historial
 if "chat" not in st.session_state:
@@ -41,16 +42,28 @@ history = st.session_state.history
 # Definimos el contexto en el estado de la app
 if "contexto" not in st.session_state or st.session_state.contexto != contexto:
     st.session_state.contexto = contexto
-
+    
+# Definimos el tipo de agente en el estado
+if "type_agent" not in st.session_state or st.session_state.type_agent != agent_type:
+    # Limpiamos el historia para e cambio de agente
+    st.session_state.history.clear()
+    
+    # Redefinimos el agente con el que esta seleccionado
+    st.session_state.type_agent = agent_type
+    
 # * --------------------- Manejo de historial y de respuestas ------------------ *
 
 # ventana de contexto dinamica
 MAX_HISTORY = (st.session_state.contexto * 3) + 1
 
-async def response_mcp(pregunta:str):
+async def response_mcp(pregunta:str,agent:Agent):
     """ 
     Realiza preguntas al agente de forma asincrona \n
     permitiendole usar herramientas mas complejas como MCP 
+    
+    Parametros:
+    - pregunta: Pregunta del usuario al agente
+    - agent: Tipo de agente al que se le realizara la pregunta
     """
     
     # Definimos el contexto asincrono para esperar la respuesta del mcp
@@ -89,11 +102,12 @@ if pregunta:
         st.markdown(pregunta)
         
     # Esperamos la respuesta del agente
-    with st.spinner("Esperando la respuesta...",show_time=True,_cache=True):
+    with st.spinner("Esperando la respuesta...",show_time=True):
         
         # Enviamos el la pregunta
         try:
-            response, resumen= asyncio.run(response_mcp(pregunta))
+            response, resumen= asyncio.run(response_mcp(pregunta, agentes_map.get(st.session_state.type_agent)))
+            
         except Exception as e:
             st.toast(f"Error al responder: {e}")
             response = "Por favor vuelva a realizar su pregunta"
@@ -110,5 +124,4 @@ if pregunta:
             st.markdown(combined)
 
 #with st.sidebar:
-#    st.write(st.session_state.contexto)
-#    st.json(st.session_state.history)
+#    st.json(st.session_state)
