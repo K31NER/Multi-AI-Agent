@@ -1,6 +1,5 @@
 import os
 import asyncio
-from typing import Union
 import logfire
 from pydantic_ai import Agent
 from dotenv import load_dotenv
