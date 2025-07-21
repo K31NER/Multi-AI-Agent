@@ -4,6 +4,7 @@ from basic_agent import model
 from tools.news import get_news_tool
 from tools.MCPs import inmopipeline_mcp
 from tools.time import get_time_now_tool
+from tools.weather import get_weather_tool
 from schemas.agent_schema import ResponseModel
 from prompts.clima import CLIMAS_SYSTEM_PROMPT
 from prompts.finanzas import FINANZAS_SYSTEM_PROMPT
@@ -31,7 +32,8 @@ noticias = Agent(
     output_type=ResponseModel,
     system_prompt=NOTICIAS_SYSTEM_PROMPT,
     tools=[get_time_now_tool,get_news_tool],
-    retries=True
+    retries=True,
+    instrument=True
 )
 
 meteorologico = Agent(
@@ -39,6 +41,7 @@ meteorologico = Agent(
     output_type=ResponseModel,
     system_prompt=CLIMAS_SYSTEM_PROMPT,
     retries=2,
+    tools=[get_weather_tool,get_time_now_tool],
     instrument=True
 )
 
