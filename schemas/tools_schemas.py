@@ -12,3 +12,13 @@ class NewsItem(BaseModel):
     descripcion: str = Field("Breve descripcion")
     fecha: str = Field("Hora o fecha de publicacion")
     url: str = Field("Enlace a la noticia")
+    
+class WeatherItem(BaseModel):
+    ciudad: str = Field("Ciudad donde se presenta el clima")
+    temperatura: str = Field("Grados de temperatura")
+    viento: str = Field("Nivel del viento")
+    humedad: str = Field("Nivel de humedad")
+    nubes: str = Field("Porcenaje de nubes")
+    radiacion_uv: str = Field("Nivel de radiacion solar")
+    presion: str = Field("Nivel de presion")
+    humedad: str = Field("Porcentaje de humedad")

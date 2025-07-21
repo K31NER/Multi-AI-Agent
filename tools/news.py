@@ -6,10 +6,11 @@ from playwright.sync_api import sync_playwright
 
 BASE_URL = "https://www.eltiempo.com/ultimas-noticias"
 
-def get_news_by_el_tiempo() -> List[NewsItem]:
+def get_news_by_el_tiempo(limite:int = 3) -> List[NewsItem]:
     """ Realiza una busqueda de las noticas mas recientes de colombia 
     
     - Pagina de las noticias: El Tiempo
+    - Limite: Limite de noticias que se muestran, el para obtener todas la noticias poner un limite de 30
     
     Return:
     - data = Dataframe
@@ -65,7 +66,7 @@ def get_news_by_el_tiempo() -> List[NewsItem]:
                 continue
         browser.close()
             
-    return noticias_resultado
+    return noticias_resultado[:limite]
 
 # Definimos la tool
 get_news_tool = Tool(
