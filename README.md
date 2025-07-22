@@ -5,7 +5,7 @@
 [![Gemini](https://img.shields.io/badge/_Google_Gemini-2.5_Pro-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 [![MCP](https://img.shields.io/badge/Model_Context_Protocol-1.11.0-00D4AA?style=for-the-badge)](https://modelcontextprotocol.io)
 
-[![Streamlit](https://img.shields.io/badge/_Streamlit-Planned-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Streamlit](https://img.shields.io/badge/_Streamlit-UX/UI-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![Playwright](https://img.shields.io/badge/_Playwright-Scraping-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev)
 [![FastAPI](https://img.shields.io/badge/_FastAPI-0.116.1-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Logfire](https://img.shields.io/badge/Logfire-Observability-FF6B35?style=for-the-badge)](https://pydantic.dev/logfire)
@@ -176,10 +176,9 @@ Esta estructura garantiza que el agente mantenga el contexto completo de las con
 - **Esquemas Pydantic**: Validación de entrada y salida
 - **Observabilidad**: Integración con Logfire
 - **Arquitectura Modular**: Separación de prompts, tools y schemas
-
+- **Interfaz Streamlit**: Selección de agentes y configurar rendimiento
 ### 🚧 En Desarrollo
 
-- [ ] Interfaz Streamlit para selección de agentes
 - [ ] Agentes especializados por dominio
 - [ ] Banco de prompts dinámico
 - [ ] Herramientas adicionales (clima, finanzas)
