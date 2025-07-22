@@ -22,3 +22,9 @@ class WeatherItem(BaseModel):
     radiacion_uv: str = Field("Nivel de radiacion solar")
     presion: str = Field("Nivel de presion")
     humedad: str = Field("Porcentaje de humedad")
+    
+class TrmItem(BaseModel):
+    titulo: str = Field("Descripcion del tipo de conversion")
+    conversion: str = Field("Monda del pais origen vs pais a comparar")
+    moneda_origen: str = Field("Moneda de origen")
+    moneda_conversion: str = Field("Moneda del pais a convertir")

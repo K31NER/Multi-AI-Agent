@@ -29,7 +29,7 @@ def add_sidebar():
                                 help="Indica el numero de mensajes que puede recordar el agente",
                                 icon=":material/network_intelligence_history:")
         
-        types = ["Inmobiliario","Noticias","Meteorológico","Financiero"]
+        types = ["🏠 Inmobiliario","📰 Noticias","🌤️ Meteorológico","💵 Financiero"]
         agent_type = st.selectbox("Tipo de agente:",types)
         
         temperatura = st.slider("Temperatura: ",max_value=1.0,min_value=0.0,value=0.3)
