@@ -3,7 +3,21 @@ from schemas.tools_schemas import WeatherItem
 from playwright.sync_api import sync_playwright
 
 URL_BASE = "https://www.clima.com/colombia"
+        
+# Bloquea el contenido innecesaro
+def block_resources(route, request):
+    
+    """ Evita cargar el contenido pesado e innecesario """
+    blocked_types = ["image", "stylesheet", "font", "media", "fetch", "xhr"]
+    blocked_domains = ["googletagmanager", "google-analytics", "facebook", "doubleclick"]
 
+    if request.resource_type in blocked_types:
+        return route.abort()
+    if any(domain in request.url for domain in blocked_domains):
+        return route.abort()
+    
+    return route.continue_()
+        
 def get_weather_stats(page):
     """ Obteiene la informacion climatica adicional """
     container_sel = "section.-block-4.c-wrapper-ctas.c-wrapper-ctas-w_links"
@@ -23,6 +37,8 @@ def get_weather_stats(page):
 def get_weather(departamento:str , ciudad: str) -> WeatherItem:
     """ Obtiene los datos climaticos principales 
     
+    Pagina fuente: https://www.clima.com/colombia
+    
     Parametros: 
     - departamento: nombre del departamento
     - ciudad: ciudad donde se obtendra la informacion climatica
@@ -34,11 +50,14 @@ def get_weather(departamento:str , ciudad: str) -> WeatherItem:
             
     #Ajustamos la las entradas
     ciudad_parser = ciudad.replace(" ","-").strip().lower()
-    departamento_parser = departamento.strip().lower()
+    departamento_parser = departamento.replace(" ","-").strip().lower()
         
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True) # Definimos el navegador
         page = browser.new_page() # Abrimos una nueva pagina
+        
+        # Bloquemos contenido pesado
+        page.route("**/*", block_resources)
         
         # Definimos la url
         new_url = f"{URL_BASE}/{departamento_parser}/{ciudad_parser}"

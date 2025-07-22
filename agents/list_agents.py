@@ -4,6 +4,7 @@ from basic_agent import model
 from tools.news import get_news_tool
 from tools.MCPs import inmopipeline_mcp
 from tools.time import get_time_now_tool
+from tools.conversion import get_trm_tool
 from tools.weather import get_weather_tool
 from schemas.agent_schema import ResponseModel
 from prompts.clima import CLIMAS_SYSTEM_PROMPT
@@ -49,14 +50,15 @@ financiero = Agent(
     model=model,
     output_type=ResponseModel,
     system_prompt=FINANZAS_SYSTEM_PROMPT,
+    tools=[get_trm_tool],
     retries=2,
     instrument=True
 )
 
 # Mapeo para obtener el agente 
 agentes_map = {
-    "Inmobiliario": inmobiliario,
-    "Noticias" : noticias,
-    "Meteorológico": meteorologico,
-    "Financiero" : financiero
+    "🏠 Inmobiliario":  inmobiliario,
+    "📰 Noticias": noticias,
+    "🌤️ Meteorológico": meteorologico,
+    "💵 Financiero": financiero
 }

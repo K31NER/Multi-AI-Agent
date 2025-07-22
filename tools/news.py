@@ -6,8 +6,24 @@ from playwright.sync_api import sync_playwright
 
 BASE_URL = "https://www.eltiempo.com/ultimas-noticias"
 
-def get_news_by_el_tiempo(limite:int = 3) -> List[NewsItem]:
+# Bloquea el contenido innecesaro
+def block_resources(route, request):
+    
+    """ Evita cargar el contenido pesado e innecesario """
+    blocked_types = ["image", "stylesheet", "font", "media", "fetch", "xhr"]
+    blocked_domains = ["googletagmanager", "google-analytics", "facebook", "doubleclick"]
+
+    if request.resource_type in blocked_types:
+        return route.abort()
+    if any(domain in request.url for domain in blocked_domains):
+        return route.abort()
+    
+    return route.continue_()
+
+def get_news_by_el_tiempo(limite:int = 5) -> List[NewsItem]:
     """ Realiza una busqueda de las noticas mas recientes de colombia 
+    
+    Pagina fuente: https://www.eltiempo.com/ultimas-noticias
     
     - Pagina de las noticias: El Tiempo
     - Limite: Limite de noticias que se muestran, el para obtener todas la noticias poner un limite de 30
@@ -24,6 +40,9 @@ def get_news_by_el_tiempo(limite:int = 3) -> List[NewsItem]:
         
         browser = p.chromium.launch(headless=True) # Definimos el navegador
         page = browser.new_page() # Abrimos una nueva pagina
+        
+        # Bloquemos contenido pesado
+        page.route("**/*", block_resources)
         
         page.goto(BASE_URL,timeout=10000) # accedemos a la url
         
@@ -75,5 +94,4 @@ get_news_tool = Tool(
                     description="Devuelve las noticas mas recientes de colombia")
 
 if __name__ == "__main__":
-    df = get_news_by_el_tiempo()
-    print(df)
+    pass
