@@ -1,32 +1,50 @@
 import sys
 import asyncio
+import logging
 import nest_asyncio
 import streamlit as st 
 from pydantic_ai import Agent
-from agents.list_agents import *
+from model import model_config
+from logger_config import init_logger
 from UI.elemts import add_title,add_sidebar
+from agents.list_agents import create_agents
 
 st.set_page_config(
     page_title="AI Agent",
     page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="expanded"
-)
+    initial_sidebar_state="expanded")
+
 
 # * -------------------- Configuracion inicial ---------------------------------
-# 1. En Windows, asegurar que usamos ProactorEventLoop
+# Inicalizamos el logger
+init_logger()
+
+# Creamos el objeto loggin para registrar
+logger = logging.getLogger(__name__)
+
+# En Windows, asegurar que usamos ProactorEventLoop
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
     
-# 2. Parche para permitir llamadas anidadas a asyncio.run()
+# Parche para permitir llamadas anidadas a asyncio.run()
 nest_asyncio.apply()
 
 # Llamas a la función al inicio
-contexto, agent_type, temperatura, top_p, top_k, max_token, disable_summary, color = add_sidebar()
+contexto, agent_type,model_version, temperatura, top_p, max_token, multi_tool,disable_summary, color = add_sidebar()
 
 # Definimos el titulo
 add_title(titulo="AI Agent",icon="🤖",color=color)
-    
+
+# Capturar configuración actual
+current_config = dict(
+    model_version=model_version,
+    p=top_p,
+    temp=temperatura,
+    token=max_token,
+    multi_tool=multi_tool
+)
+
 # *---------------------- Variables de estado ---------------------------------*
 # Definimimso el estado para guardar el historial
 if "chat" not in st.session_state:
@@ -43,13 +61,23 @@ history = st.session_state.history
 if "contexto" not in st.session_state or st.session_state.contexto != contexto:
     st.session_state.contexto = contexto
     
-# Definimos el tipo de agente en el estado
-if "type_agent" not in st.session_state or st.session_state.type_agent != agent_type:
-    # Limpiamos el historia para e cambio de agente
-    st.session_state.history.clear()
+# Creamos la session general 
+if "agentes" not in st.session_state:
+    st.session_state.config = None
+    st.session_state.model_obj = None
+    st.session_state.agentes = {}
+
+# Detecta si algo cambió
+if st.session_state.config != current_config:
+    st.session_state.config = current_config
+    st.session_state.model_obj = model_config(**current_config)
+    st.session_state.agentes = create_agents(st.session_state.model_obj)
     
-    # Redefinimos el agente con el que esta seleccionado
-    st.session_state.type_agent = agent_type
+# Obtenemos el agente actual
+agent = st.session_state.agentes.get(agent_type)
+if agent is None:
+    st.error(f"Agente '{agent_type}' no disponible. Recarga para regenerar.")
+    st.stop()
     
 # * --------------------- Manejo de historial y de respuestas ------------------ *
 
@@ -71,6 +99,9 @@ async def response_mcp(pregunta:str,agent:Agent):
         
         # Pasamos la pregunta y espereamos
         response = await agent.run(pregunta,message_history=history)
+        
+        # Guardamos el registro
+        logger.info(f"Total tokens: {response.usage().total_tokens} | Model {model_version}")
         
         # Obtenemos todo el historial acumulado
         all_msgs = response.all_messages()
@@ -106,12 +137,13 @@ if pregunta:
         
         # Enviamos el la pregunta
         try:
-            response, resumen= asyncio.run(response_mcp(pregunta, agentes_map.get(st.session_state.type_agent)))
-            
+            response, resumen= asyncio.run(response_mcp(pregunta, agent))
         except Exception as e:
             st.toast(f"Error al responder: {e}")
             response = "Por favor vuelva a realizar su pregunta"
             resumen = "No se pudo responder"
+            logger.exception(f"Error: {e}")
+            
         # La agregamos al historial
         st.session_state.chat.append({"role":"assistant","content":response})
         
@@ -123,5 +155,5 @@ if pregunta:
                 combined = response
             st.markdown(combined)
 
-#with st.sidebar:
-#    st.json(st.session_state)
+with st.sidebar:
+    st.json(st.session_state.agentes)
