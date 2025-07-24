@@ -57,6 +57,14 @@ if "history" not in st.session_state:
 # Instanciamos el historial
 history = st.session_state.history
 
+# Definimos el tipo de agente en el estado
+if "type_agent" not in st.session_state or st.session_state.type_agent != agent_type:
+    # Limpiamos el historia para e cambio de agente
+    st.session_state.history.clear()
+    
+    # Redefinimos el agente con el que esta seleccionado
+    st.session_state.type_agent = agent_type
+    
 # Definimos el contexto en el estado de la app
 if "contexto" not in st.session_state or st.session_state.contexto != contexto:
     st.session_state.contexto = contexto
@@ -73,8 +81,10 @@ if st.session_state.config != current_config:
     st.session_state.model_obj = model_config(**current_config)
     st.session_state.agentes = create_agents(st.session_state.model_obj)
     
+    st.session_state.history.clear()
+
 # Obtenemos el agente actual
-agent = st.session_state.agentes.get(agent_type)
+agent = st.session_state.agentes.get(st.session_state.type_agent)
 if agent is None:
     st.error(f"Agente '{agent_type}' no disponible. Recarga para regenerar.")
     st.stop()
@@ -155,5 +165,6 @@ if pregunta:
                 combined = response
             st.markdown(combined)
 
-with st.sidebar:
-    st.json(st.session_state.agentes)
+#with st.sidebar:
+#   st.write(agent_type)
+#    st.json(st.session_state.agentes)
