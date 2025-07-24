@@ -15,9 +15,8 @@ from prompts.inmobiliario import INMOBILIARIO_SYSTEM_PROMPT
 logfire.configure()
 logfire.instrument_pydantic_ai()
 
-
 # *-------------------------- Definimos los agentes -------------------------------- *
-def agent_inmobiliario(model):
+def agent_inmobiliario(model) -> Agent:
     return Agent(
         model=model,
         output_type=ResponseModel,
@@ -27,7 +26,7 @@ def agent_inmobiliario(model):
         instrument=True
     )
 
-def agent_noticias(model):
+def agent_noticias(model) -> Agent:
     return Agent(
         model=model,
         output_type=ResponseModel,
@@ -37,7 +36,7 @@ def agent_noticias(model):
         instrument=True
     )
 
-def agent_meteorologico(model):
+def agent_meteorologico(model) -> Agent:
     return Agent(
         model=model,
         output_type=ResponseModel,
@@ -47,7 +46,7 @@ def agent_meteorologico(model):
         instrument=True
     )
 
-def agent_financiero(model):
+def agent_financiero(model) -> Agent:
     return Agent(
         model=model,
         output_type=ResponseModel,

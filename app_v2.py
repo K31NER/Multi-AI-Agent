@@ -8,6 +8,7 @@ from model import model_config
 from logger_config import init_logger
 from UI.elemts import add_title,add_sidebar
 from agents.list_agents import create_agents
+from db.history import get_history,update_history,map_keys
 
 st.set_page_config(
     page_title="AI Agent",
@@ -34,8 +35,9 @@ nest_asyncio.apply()
 contexto, agent_type,model_version, temperatura, top_p, max_token, multi_tool,disable_summary, color = add_sidebar()
 
 # Definimos el titulo
-add_title(titulo="AI Agent",icon="🤖",color=color)
+add_title(titulo="Multi AI Agent",icon="🤖",color=color)
 
+    
 # Capturar configuración actual
 current_config = dict(
     model_version=model_version,
@@ -54,9 +56,6 @@ if "chat" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
     
-# Instanciamos el historial
-history = st.session_state.history
-
 # Definimos el contexto en el estado de la app
 if "contexto" not in st.session_state or st.session_state.contexto != contexto:
     st.session_state.contexto = contexto
@@ -84,6 +83,10 @@ if agent is None:
 # ventana de contexto dinamica
 MAX_HISTORY = (st.session_state.contexto * 3) + 1
 
+# Instanciamos el historial
+history = get_history(agent=map_keys.get(agent_type),context=MAX_HISTORY)
+st.session_state.history = history
+        
 async def response_mcp(pregunta:str,agent:Agent):
     """ 
     Realiza preguntas al agente de forma asincrona \n
@@ -97,20 +100,21 @@ async def response_mcp(pregunta:str,agent:Agent):
     # Definimos el contexto asincrono para esperar la respuesta del mcp
     async with agent.run_mcp_servers():
         
+    
         # Pasamos la pregunta y espereamos
-        response = await agent.run(pregunta,message_history=history)
+        response = await agent.run(pregunta,message_history=st.session_state.history)
         
         # Guardamos el registro
         logger.info(f"Total tokens: {response.usage().total_tokens} | Model {model_version}")
         
         # Obtenemos todo el historial acumulado
-        all_msgs = response.all_messages()
+        nuevo = response.new_messages()
 
-        # Recortamos los últimos N mensajes
-        trimmed_history = all_msgs[-MAX_HISTORY:]
-
+        # Actualizamos 
+        for n in nuevo:
+            update_history(agent=agent_type,hist=n,context=MAX_HISTORY)
         # Actualizamos el historial en session_state
-        st.session_state.history = trimmed_history
+        #history 
         
         return response.output.response , response.output.summary
 
@@ -137,7 +141,7 @@ if pregunta:
         
         # Enviamos el la pregunta
         try:
-            response, resumen= asyncio.run(response_mcp(pregunta, agent))
+            response, resumen = asyncio.run(response_mcp(pregunta, agent))
         except Exception as e:
             st.toast(f"Error al responder: {e}")
             response = "Por favor vuelva a realizar su pregunta"
@@ -156,4 +160,7 @@ if pregunta:
             st.markdown(combined)
 
 with st.sidebar:
-    st.json(st.session_state.agentes)
+    st.json(st.session_state.history)
+    st.write(map_keys.get(agent_type))
+    st.write(f"history:{map_keys.get(agent_type)}")
+    st.json(get_history(agent_type,MAX_HISTORY))
