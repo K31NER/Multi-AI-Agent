@@ -1,4 +1,6 @@
-import streamlit as st 
+import streamlit as st
+
+from db.history import clean_session 
 
 def add_title(titulo:str,icon:str,color:str = "#F93434"):
     st.markdown(
@@ -49,11 +51,15 @@ def add_sidebar():
         max_token = st.number_input("Numero maximo de tokens: ",value=1000,min_value=200,key="max_tokens")
         
         multi_tool = st.toggle("Multi Tools",value=False,help="Permite al modelo usar mas de una herramienta a la vez",key="multi_tool")
-        
+                
+        if st.button("Limpiar historial",key="clean"):
+            clean_session(borrar=True)
+            
         st.subheader("Estetica",divider="red")
         
         disable_summary = st.toggle("Desactivar resumen",key="disable_summary")
         
         color = st.color_picker("Eliga  un color",value="#F93434",key="color_picker")
-        
+
+            
         return contexto, agent_type,model_version, temperatura, top_p, max_token,multi_tool, disable_summary, color
