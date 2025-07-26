@@ -165,6 +165,7 @@ if pregunta:
                 combined = response
             st.markdown(combined)
 
-#with st.sidebar:
+with st.sidebar:
+    st.json(st.session_state.history)
 #   st.write(agent_type)
 #    st.json(st.session_state.agentes)

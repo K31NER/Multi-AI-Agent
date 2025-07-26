@@ -1,5 +1,8 @@
+from typing import List
 from pydantic import BaseModel, Field
 
+class ResponseBase(BaseModel):
+    response: str = Field(description="Respuesta en base a lo solicitado")
 class TimeNow(BaseModel):
     """Output model que retorna la fecha y hora actual."""
     
