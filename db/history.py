@@ -1,9 +1,6 @@
 import redis,json,logging
 from logger_config import init_logger
 from redis.exceptions import ConnectionError
-from pydantic_ai.messages import ModelMessagesTypeAdapter
-from pydantic_core import to_jsonable_python
-from pydantic import TypeAdapter
 
 init_logger()
 logger = logging.getLogger(__name__)
@@ -38,14 +35,14 @@ def update_history(agent:str, hist: dict ,context:int , expire: int = 1):
     expire_time = expire * 24*60*60 # 1 Dia por defecto
     
     # Serializamo la entrada
-    hist_serializer = hist.model_dump_json()
+    hist_serializer = json.dumps(hist)
     
     try:
         # Creamos el pipeline
         pipe = r.pipeline()
         
         # Creamos la session del agente con su respectivo historial
-        pipe.lpush(key,hist_serializer)
+        pipe.lpush(key,hist)
         
         # Limitamos el tamaño
         pipe.ltrim(key,0,context-1)
@@ -81,7 +78,7 @@ def get_history(agent: str ,context: int) -> list:
         return []
     
     # Volvemos una lista
-    hist = [json.loads(e) for e in elementos]
+    hist = elementos
     hist.reverse() # Invertimos para tener el orden FIFO
     
     return hist

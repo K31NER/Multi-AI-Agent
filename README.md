@@ -48,11 +48,24 @@ graph TD
     I --> J[Tool: Tiempo]
     I --> K[Tool: Noticias]
     I --> L[MCP: Inmobiliaria]
+    I --> M[Tool: Análisis Multimedia]
     
-    D --> M[Gemini 2.5 Pro]
-    E --> M
-    F --> M
-    G --> M
+    M --> N[Subagente Multimedia]
+    N --> O[Análisis Imágenes]
+    N --> P[Análisis Videos]
+    N --> Q[Análisis Documentos]
+    
+    D --> R[Gemini 2.5 Pro]
+    E --> R
+    F --> R
+    G --> R
+    N --> R
+    
+    style N fill:#e1f5fe
+    style M fill:#fff3e0
+    style O fill:#e8f5e8
+    style P fill:#e8f5e8
+    style Q fill:#e8f5e8
 ```
 
 ## 🧠 Gestión Inteligente de Contexto
@@ -164,19 +177,157 @@ Esta estructura garantiza que el agente mantenga el contexto completo de las con
 - **🎯 Relevancia**: Mantiene solo información contextual relevante
 - **🔧 Flexibilidad**: Configuración dinámica durante la conversación
 
+## 🎯 Sistema de Delegación de Tareas con Subagentes
+
+Una de las características más avanzadas del proyecto es la **integración de delegación de tareas** que permite a Pydantic AI crear subagentes especializados para tareas específicas. En este caso, se ha implementado un **agente de análisis multimedia** que funciona como herramienta delegada.
+
+### 🔧 Arquitectura de Delegación
+
+![Agente usando subagente como tool](img/Agente%20usando%20subagente%20como%20tool.png)
+
+El sistema funciona con la siguiente arquitectura:
+
+```mermaid
+graph TD
+    A[Usuario] --> B[Agente Principal]
+    B --> C{¿Requiere análisis multimedia?}
+    
+    C -->|Sí| D[Tool: read_media]
+    C -->|No| E[Otras herramientas]
+    
+    D --> F[Subagente Multimedia]
+    F --> G[Análisis de contenido]
+    G --> H[Resultado al agente principal]
+    H --> I[Respuesta final al usuario]
+    
+    E --> I
+```
+
+### 🎥 Implementación del Subagente Multimedia
+
+#### Definición del Subagente Especializado
+
+```python
+# Agente especializado en análisis multimedia
+media_agent = Agent(
+    model=model_config(),
+    system_prompt="""
+    Eres un agente encargado de analizar URLs y responder en base a las preguntas, 
+    puedes recibir URLs de imagen, video o documento; debes analizarlas y responder con precisión.
+    """,
+    output_type=ResponseBase
+)
+
+# Función que actúa como herramienta delegada
+async def read_media(question: str,
+                    media_url: str,
+                    type_file: Literal["imagen","video","documento"]) -> str:
+    """
+    Función para analizar archivos multimedia: imágenes, videos o documentos.
+    
+    Parámetros:
+    - question: Pregunta a realizar sobre el archivo
+    - media_url: URL pública del archivo a analizar
+    - type_file: Tipo de archivo ("imagen", "video", "documento")
+    
+    Retorna:
+    - Respuesta generada por el subagente especializado
+    """
+    media_type = type_map.get(type_file)
+    response = await media_agent.run([question, media_type(media_url)])
+    return response.output.response
+
+# Herramienta que encapsula el subagente
+read_media_tool = Tool(
+    function=read_media,
+    name="read_media",
+    description="Tool especializada en análisis multimodal (imagen, video, documento) desde URLs públicas.",
+    max_retries=3
+)
+```
+
+### 🏗️ Integración en Agentes Especializados
+
+Todos los agentes especializados incluyen la capacidad de delegación multimedia:
+
+```python
+def agent_noticias(model) -> Agent:
+    return Agent(
+        model=model,
+        system_prompt=NOTICIAS_SYSTEM_PROMPT,
+        tools=[get_time_now_tool, get_news_tool, read_media_tool],  # ← Delegación incluida
+        retries=True,
+        instrument=True
+    )
+
+def agent_inmobiliario(model) -> Agent:
+    return Agent(
+        model=model,
+        system_prompt=INMOBILIARIO_SYSTEM_PROMPT,
+        tools=[read_media_tool],  # ← Capacidad multimedia
+        mcp_servers=[inmopipeline_mcp],
+        retries=2,
+        instrument=True
+    )
+```
+
+### 💻 Flujo de Ejecución en Terminal
+
+![Terminal flujo de delegación de tareas](img/terminal_flujo_de_delagacion_de_tareas.png)
+
+El flujo de delegación se ejecuta de la siguiente manera:
+
+1. **👤 Usuario**: Solicita análisis de una imagen, video o documento mediante URL
+2. **🤖 Agente Principal**: Identifica que necesita análisis multimedia
+3. **🔧 Herramienta read_media**: Se activa automáticamente como delegación
+4. **🎯 Subagente Multimedia**: Procesa el contenido específico
+5. **📊 Análisis Especializado**: Genera respuesta enfocada en el contenido multimedia
+6. **🔄 Retorno**: El resultado se integra en la respuesta del agente principal
+7. **💬 Respuesta Unificada**: El usuario recibe una respuesta coherente que combina el análisis multimedia con el contexto de la conversación
+
+### 🎭 Capacidades Multimodales Soportadas
+
+| Tipo de Archivo | Formato Pydantic AI | Capacidades de Análisis |
+|-----------------|-------------------|------------------------|
+| **📷 Imágenes** | `ImageUrl` | Descripción, OCR, detección de objetos, análisis visual |
+| **🎥 Videos** | `VideoUrl` | Análisis de contenido, transcripción, detección de escenas |
+| **📄 Documentos** | `DocumentUrl` | Extracción de texto, análisis de contenido, resumen |
+
+### 💡 Ventajas de la Delegación de Tareas
+
+- **🎯 Especialización**: Cada subagente se enfoca en una tarea específica
+- **🔄 Reutilización**: La herramienta multimedia puede ser usada por cualquier agente
+- **⚡ Eficiencia**: Procesamiento optimizado según el tipo de contenido
+- **🛡️ Modularidad**: Fácil mantenimiento y escalabilidad del sistema
+- **🧠 Inteligencia Distribuida**: División lógica de responsabilidades
+
+### 🚀 Casos de Uso Prácticos
+
+- **📰 Agente de Noticias**: Analiza imágenes de noticias, capturas de pantalla de artículos
+- **🏠 Agente Inmobiliario**: Examina fotos de propiedades, planos, documentos legales
+- **🌤️ Agente Meteorológico**: Interpreta mapas climáticos, gráficos meteorológicos
+- **💰 Agente Financiero**: Analiza gráficos de bolsa, reportes financieros, tablas de datos
+
+Esta implementación demuestra cómo **Pydantic AI** facilita la creación de sistemas de IA colaborativos donde diferentes agentes pueden especializarse y trabajar en conjunto para resolver tareas complejas de manera eficiente.
+
 ## 🛠️ Estado Actual del Desarrollo
 
 ### ✅ Funcionalidades Implementadas
 
 - **Agente Base**: Configurado con Gemini 2.5 Pro
+- **Sistema de Delegación**: Subagentes especializados como herramientas
+- **Análisis Multimedia**: Procesamiento de imágenes, videos y documentos via URL
 - **Sistema de Tools**: 
   - 🕐 Obtención de fecha y hora actual
   - 📰 Scraping de noticias de El Tiempo
   - 🏠 Consulta inmobiliaria via MCP
+  - 🎥 Análisis multimodal (delegación a subagente especializado)
 - **Esquemas Pydantic**: Validación de entrada y salida
 - **Observabilidad**: Integración con Logfire
 - **Arquitectura Modular**: Separación de prompts, tools y schemas
 - **Interfaz Streamlit**: Selección de agentes y configurar rendimiento
+- **Gestión de Contexto**: Ventana dinámica de historia de conversación
+
 ### 🚧 En Desarrollo
 
 - [ ] Agentes especializados por dominio
@@ -225,10 +376,13 @@ Esta estructura garantiza que el agente mantenga el contexto completo de las con
 ## 💡 Características Clave
 
 - **🔧 Modularidad**: Arquitectura basada en componentes reutilizables
+- **🎯 Delegación Inteligente**: Subagentes especializados como herramientas
+- **🎥 Análisis Multimodal**: Procesamiento de imágenes, videos y documentos
 - **🌎 Datos Regionales**: Enfoque en información colombiana
 - **🔄 Asíncrono**: Operaciones no bloqueantes
 - **📊 Observabilidad**: Monitoreo completo con Logfire
 - **🛡️ Validación**: Esquemas Pydantic para datos seguros
+- **🧠 Gestión de Contexto**: Control dinámico de historia conversacional
 - **🎨 Interfaz Futura**: Streamlit para experiencia de usuario
 
 ## 🚦 Roadmap
@@ -252,4 +406,3 @@ Esta estructura garantiza que el agente mantenga el contexto completo de las con
 - [ ] Base de datos persistente
 - [ ] Cache distribuido
 - [ ] API REST completa
-

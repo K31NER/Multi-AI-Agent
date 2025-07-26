@@ -1,3 +1,4 @@
+import ast
 import sys
 import asyncio
 import logging
@@ -35,7 +36,7 @@ nest_asyncio.apply()
 contexto, agent_type,model_version, temperatura, top_p, max_token, multi_tool,disable_summary, color = add_sidebar()
 
 # Definimos el titulo
-add_title(titulo="Multi AI Agent",icon="🤖",color=color)
+add_title(titulo="Multi AI Agent - Redis",icon="🤖",color=color)
 
     
 # Capturar configuración actual
@@ -86,6 +87,8 @@ MAX_HISTORY = (st.session_state.contexto * 3) + 1
 # Instanciamos el historial
 history = get_history(agent=map_keys.get(agent_type),context=MAX_HISTORY)
 st.session_state.history = history
+
+#historial = ast.literal_eval(st.session_state.history) if isinstance(history,str) else st.session_state.history
         
 async def response_mcp(pregunta:str,agent:Agent):
     """ 
@@ -108,13 +111,12 @@ async def response_mcp(pregunta:str,agent:Agent):
         logger.info(f"Total tokens: {response.usage().total_tokens} | Model {model_version}")
         
         # Obtenemos todo el historial acumulado
-        nuevo = response.new_messages()
-
+        hist_byte = response.all_messages_json()
+        hist = hist_byte.decode("utf8")
+        print(hist)
+        
         # Actualizamos 
-        for n in nuevo:
-            update_history(agent=agent_type,hist=n,context=MAX_HISTORY)
-        # Actualizamos el historial en session_state
-        #history 
+        update_history(agent=map_keys.get(agent_type),hist=hist,context=MAX_HISTORY)
         
         return response.output.response , response.output.summary
 
