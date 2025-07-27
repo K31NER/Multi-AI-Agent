@@ -2,9 +2,10 @@ import sys
 import asyncio
 import logging
 import nest_asyncio
-import streamlit as st 
+import streamlit as st
 from pydantic_ai import Agent
 from model import model_config
+from utils.file_mange import save_in_bucket,drop_file
 from logger_config import init_logger
 from UI.elemts import add_title,add_sidebar
 from agents.list_agents import create_agents
@@ -46,6 +47,10 @@ current_config = dict(
 )
 
 # *---------------------- Variables de estado ---------------------------------*
+# Iniciaizamos el id en 1
+if "file_id" not in st.session_state:
+    st.session_state.file_id = 1
+    
 # Definimimso el estado para guardar el historial
 if "chat" not in st.session_state:
     st.session_state.chat = []
@@ -133,26 +138,49 @@ for msg in st.session_state.chat:
         st.markdown(msg["content"])
 
 # Esperamos la entrada del usuario
-pregunta = st.chat_input("En que te puedo ayudar?")
+pregunta = st.chat_input("En que te puedo ayudar?",accept_file=True)
 if pregunta:
+    
+    # Dividimos el mensaje
+    pregunta_text = pregunta.text or "" # Obtenemos la pregunta
+    file = pregunta.files[0] if pregunta.files else None # Obtenemos el archivo
+    
+    # Definimos la pregunta final
+    pregunta_final = pregunta_text
+    
+    # Validamos el archivo
+    if file is not None:
+        # Guardamos el archivo
+        file_id = st.session_state.file_id # Sacamos el id
+        file_extension = file.name.split(".")[-1] # Obtemos la extension
+        file_name = f"{file_id}.{file_extension}" # Definimos el nombre
+        url = save_in_bucket(file_name,file) # Generamos la url
+        
+        # Sumamos uno al contador
+        st.session_state.file_id += 1
+        
+        pregunta_final = f"{pregunta_text} - Link: {url}"
+    
     # Guardamos la pregunta en el historial
-    st.session_state.chat.append({"role":"user","content":pregunta})
+    st.session_state.chat.append({"role":"user","content":pregunta_text})
     
     # Mostramos la pregunta
     with st.chat_message("user"):
-        st.markdown(pregunta)
+        st.markdown(pregunta_text)
         
     # Esperamos la respuesta del agente
     with st.spinner("Esperando la respuesta...",show_time=True):
         
         # Enviamos el la pregunta
         try:
-            response, resumen= asyncio.run(response_mcp(pregunta, agent))
+            response, resumen= asyncio.run(response_mcp(pregunta_final, agent))
         except Exception as e:
             st.toast(f"Error al responder: {e}")
             response = "Por favor vuelva a realizar su pregunta"
             resumen = "No se pudo responder"
             logger.exception(f"Error: {e}")
+        finally:
+            drop_file(file_name) # Eliminamos el archivo luego de que el agente lo use
             
         # La agregamos al historial
         st.session_state.chat.append({"role":"assistant","content":response})
@@ -165,7 +193,7 @@ if pregunta:
                 combined = response
             st.markdown(combined)
 
-with st.sidebar:
-    st.json(st.session_state.history)
+#with st.sidebar:
+#    st.json(st.session_state.history)
 #   st.write(agent_type)
 #    st.json(st.session_state.agentes)
