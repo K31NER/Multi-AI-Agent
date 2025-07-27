@@ -2,13 +2,17 @@
 
 [![Python](https://img.shields.io/badge/_Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Pydantic AI](https://img.shields.io/badge/_Pydantic_AI-0.4.2-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://ai.pydantic.dev)
-[![Gemini](https://img.shields.io/badge/_Google_Gemini-2.5_Pro-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
-[![MCP](https://img.shields.io/badge/Model_Context_Protocol-1.11.0-00D4AA?style=for-the-badge)](https://modelcontextprotocol.io)
+[![Gemini](https://img.shields.io/badge/_Google_Gemini-2.5_Pro-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev)
+[![MCP](https://img.shields.io/badge/Model_Context_Protocol-1.11.0-00D4AA?style=for-the-badge&logo=modelcontextprotocol&logoColor=white)](https://modelcontextprotocol.io)
 
 [![Streamlit](https://img.shields.io/badge/_Streamlit-UX/UI-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![Playwright](https://img.shields.io/badge/_Playwright-Scraping-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev)
 [![FastAPI](https://img.shields.io/badge/_FastAPI-0.116.1-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Cloud Storage](https://img.shields.io/badge/Almacenamiento_Temporal-Google_Cloud_Storage-4285F4?style=for-the-badge&logo=googlecloudstorage&logoColor=white)](https://cloud.google.com/storage)
+
+[![Cloud](https://img.shields.io/badge/Cloud-Google_Cloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com)
 [![Logfire](https://img.shields.io/badge/Logfire-Observability-FF6B35?style=for-the-badge)](https://pydantic.dev/logfire)
+[![Dotenv](https://img.shields.io/badge/Manejo_de_Secretos-dotenv-ECD53F?style=for-the-badge&logo=dotenv&logoColor=white)](https://pypi.org/project/python-dotenv/)
 
 ## 📋 Descripción del Proyecto
 
@@ -177,6 +181,107 @@ Esta estructura garantiza que el agente mantenga el contexto completo de las con
 - **🎯 Relevancia**: Mantiene solo información contextual relevante
 - **🔧 Flexibilidad**: Configuración dinámica durante la conversación
 
+## 📁 Sistema de Gestión de Archivos con GCP Storage
+
+El proyecto incluye una **funcionalidad avanzada de gestión de archivos** que permite a los usuarios subir archivos directamente a **Google Cloud Storage** y generar URLs públicas para que los agentes especializados puedan analizarlos. Esta implementación elimina las limitaciones de tamaño y permite un procesamiento más eficiente de contenido multimedia.
+
+### 🔧 Arquitectura de Subida de Archivos
+
+```mermaid
+graph TD
+    A[Usuario] --> B[Interfaz Streamlit]
+    B --> C[File Uploader]
+    C --> D[Validación de Archivo]
+    D --> E[Google Cloud Storage]
+    E --> F[Bucket: multi_ai_agent]
+    F --> G[Generar URL Pública]
+    G --> H[Agente Principal]
+    H --> I[Tool: read_media]
+    I --> J[Subagente Multimedia]
+    J --> K[Análisis del Archivo]
+    K --> L[Respuesta al Usuario]
+    
+    style E fill:#4285F4
+    style F fill:#34A853
+    style G fill:#EA4335
+```
+
+### 📸 Proceso Visual de Subida y Análisis
+
+<div align="center">
+
+| Archivo en GCP | Generación de URL |
+|:-------------:|:----------------:|
+| ![Archivo subido en GCP](img/Archivo_subido_en_GCP.jpg) | ![Generación link uso](img/Generacion_link_uso.png) |
+
+</div>
+
+![Adjuntar archivo](img/Adjuntar_archivo.png)
+
+<div align="center">
+
+| Respuesta del Agente |
+|:-------------------:|
+| ![Respuesta al archivo adjunto](img/Respuesta_al_archivo_adjunto.png) |
+
+</div>
+
+### 💻 Implementación GCP Storage
+
+```python
+import os
+from dotenv import load_dotenv
+from google.cloud import storage
+from google.cloud.exceptions import NotFound
+
+load_dotenv()
+
+json_gcp = os.getenv("JSON_GCP")
+client = storage.Client.from_service_account_json(json_gcp)
+
+def save_in_bucket(file_name:str ,file: any ,bucket_name:str ="multi_ai_agent"):
+    try: 
+        bucket = client.get_bucket(bucket_name)
+    except NotFound as e:
+        raise RuntimeError(f"Bucket {bucket_name} no encontrado : {e}")
+    
+    blob = bucket.blob(file_name)
+    blob.upload_from_file(file, content_type=file.type)
+    blob.make_public()
+    
+    return blob.public_url
+
+def drop_file(file_name: str, bucket_name:str ="multi_ai_agent"):
+    try: 
+        bucket = client.get_bucket(bucket_name)
+    except NotFound as e:
+        raise RuntimeError(f"Bucket {bucket_name} no encontrado : {e}")
+    
+    blob = bucket.blob(file_name)
+    
+    if not blob.exists():
+        return {"status": False, "message": f"Archivo no existe: {file_name}"}
+    
+    blob.delete()
+    return True
+```
+
+### 🚀 Características del Sistema de Archivos
+
+- **☁️ Almacenamiento en la Nube**: Integración directa con Google Cloud Storage
+- **🔗 URLs Públicas**: Generación automática de enlaces públicos accesibles
+- **🗑️ Gestión Completa**: Funciones de subida y eliminación de archivos
+- **🔒 Seguridad**: Manejo de credenciales mediante variables de entorno
+- **🎯 Integración Directa**: Los agentes pueden acceder inmediatamente al contenido
+
+### 📋 Formatos de Archivo Soportados
+
+| Categoría | Formatos | Capacidades |
+|-----------|----------|-------------|
+| **📷 Imágenes** | JPG, PNG, GIF, WebP | Análisis visual, OCR, detección de objetos |
+| **🎥 Videos** | MP4, AVI, MOV, WebM | Análisis de contenido, transcripción |
+| **📄 Documentos** | PDF, DOC, DOCX, TXT | Extracción de texto, análisis de contenido |
+
 ## 🎯 Sistema de Delegación de Tareas con Subagentes
 
 Una de las características más avanzadas del proyecto es la **integración de delegación de tareas** que permite a Pydantic AI crear subagentes especializados para tareas específicas. En este caso, se ha implementado un **agente de análisis multimedia** que funciona como herramienta delegada.
@@ -316,16 +421,18 @@ Esta implementación demuestra cómo **Pydantic AI** facilita la creación de si
 
 - **Agente Base**: Configurado con Gemini 2.5 Pro
 - **Sistema de Delegación**: Subagentes especializados como herramientas
+- **Gestión de Archivos GCP**: Subida automática a Google Cloud Storage con URLs públicas
 - **Análisis Multimedia**: Procesamiento de imágenes, videos y documentos via URL
 - **Sistema de Tools**: 
   - 🕐 Obtención de fecha y hora actual
   - 📰 Scraping de noticias de El Tiempo
   - 🏠 Consulta inmobiliaria via MCP
   - 🎥 Análisis multimodal (delegación a subagente especializado)
+  - 📁 Gestión de archivos en la nube (subida/eliminación)
 - **Esquemas Pydantic**: Validación de entrada y salida
 - **Observabilidad**: Integración con Logfire
 - **Arquitectura Modular**: Separación de prompts, tools y schemas
-- **Interfaz Streamlit**: Selección de agentes y configurar rendimiento
+- **Interfaz Streamlit**: Selección de agentes, gestión de archivos y configuración de rendimiento
 - **Gestión de Contexto**: Ventana dinámica de historia de conversación
 
 ### 🚧 En Desarrollo
@@ -347,6 +454,7 @@ Esta implementación demuestra cómo **Pydantic AI** facilita la creación de si
 - **Playwright**: Web scraping de noticias
 - **Logfire**: Observabilidad y monitoreo
 - **AsyncIO**: Programación asíncrona
+- **Google Cloud Storage**: Almacenamiento de archivos en la nube
 
 ### Futuras Integraciones
 - **Streamlit**: Interfaz de usuario web
@@ -377,13 +485,14 @@ Esta implementación demuestra cómo **Pydantic AI** facilita la creación de si
 
 - **🔧 Modularidad**: Arquitectura basada en componentes reutilizables
 - **🎯 Delegación Inteligente**: Subagentes especializados como herramientas
+- **📁 Gestión de Archivos en la Nube**: Subida automática a GCP Storage con URLs públicas
 - **🎥 Análisis Multimodal**: Procesamiento de imágenes, videos y documentos
 - **🌎 Datos Regionales**: Enfoque en información colombiana
 - **🔄 Asíncrono**: Operaciones no bloqueantes
 - **📊 Observabilidad**: Monitoreo completo con Logfire
 - **🛡️ Validación**: Esquemas Pydantic para datos seguros
 - **🧠 Gestión de Contexto**: Control dinámico de historia conversacional
-- **🎨 Interfaz Futura**: Streamlit para experiencia de usuario
+- **🎨 Interfaz Completa**: Streamlit con capacidades de file upload
 
 ## 🚦 Roadmap
 
