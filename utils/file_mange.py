@@ -11,6 +11,13 @@ json_gcp = os.getenv("JSON_GCP")
 # Definimos el cliente
 client = storage.Client.from_service_account_json(json_gcp)
 
+# Definimos los tipos de archivo de entrada
+URLTYPE_FILES = [
+    "pdf", "docx", "txt", "rtf", "html", "epub", "csv",  # documentos
+    "jpg", "jpeg", "png", "gif", "webp",                 # imágenes
+    "mp4"                                                # videos
+]
+
 def save_in_bucket(file_name:str ,file: any ,bucket_name:str ="multi_ai_agent"):
     """ Guarda archivos en el storage de GCP 
     
@@ -59,5 +66,36 @@ def drop_file(file_name: str, bucket_name:str ="multi_ai_agent"):
     
     return True
 
+def save_report(file_name:str, file_content: str, 
+            bucket_name:str = "multi_ai_agent") -> str:
+    
+    """ Guarda reportes de formato md durante 3 dias como maximo 
+    
+    Parametro:
+    - file_name: Nombre que tendra el reporte en el bucket.
+    - file_content: Contenido en string que tendra el reporte.
+    - bucket_name: Nombre del bucket en el storage.
+    
+    Return:
+    - url: Direccion publica del documento para descargar el informe
+    """
+    try: 
+        bucket = client.get_bucket(bucket_name)
+    except NotFound as e:
+        raise RuntimeError(f"Bucket {bucket_name} no encontrado : {e}")
+    
+    # Creamos el objeto blob
+    blob = bucket.blob(file_name)
+    
+    # Definimos el reporte como descargable
+    blob.upload_from_string(file_content,content_type="application/octet-stream")
+    blob.content_disposition = f'attachment; filename="{file_name}"'
+    
+    blob.patch() # Aplicamos los cambios
+    blob.make_public() # Lo hacemos publico
+    
+    return blob.public_url
+
 if __name__ == "__main__":
-    pass
+    content = "## Prueba"
+    print(save_report(file_name="Test2.md",file_content=content))

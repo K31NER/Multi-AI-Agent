@@ -5,10 +5,10 @@ import nest_asyncio
 import streamlit as st
 from pydantic_ai import Agent
 from model import model_config
-from utils.file_mange import save_in_bucket,drop_file
 from logger_config import init_logger
 from UI.elemts import add_title,add_sidebar
 from agents.list_agents import create_agents
+from utils.file_mange import save_in_bucket,drop_file,URLTYPE_FILES
 
 st.set_page_config(
     page_title="AI Agent",
@@ -138,7 +138,8 @@ for msg in st.session_state.chat:
         st.markdown(msg["content"])
 
 # Esperamos la entrada del usuario
-pregunta = st.chat_input("En que te puedo ayudar?",accept_file=True)
+pregunta = st.chat_input("En que te puedo ayudar?",
+                        accept_file=True, file_type=URLTYPE_FILES)
 if pregunta:
     
     # Dividimos el mensaje
@@ -159,7 +160,7 @@ if pregunta:
         # Sumamos uno al contador
         st.session_state.file_id += 1
         
-        pregunta_final = f"{pregunta_text} - Link: {url}"
+        pregunta_final = f"{pregunta_text} - Link: {url} - Extension: {file_extension}"
     
     # Guardamos la pregunta en el historial
     st.session_state.chat.append({"role":"user","content":pregunta_text})
@@ -180,7 +181,8 @@ if pregunta:
             resumen = "No se pudo responder"
             logger.exception(f"Error: {e}")
         finally:
-            drop_file(file_name) # Eliminamos el archivo luego de que el agente lo use
+            if file is not None:
+                drop_file(file_name) # Eliminamos el archivo luego de que el agente lo use
             
         # La agregamos al historial
         st.session_state.chat.append({"role":"assistant","content":response})

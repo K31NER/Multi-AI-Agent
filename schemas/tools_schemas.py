@@ -31,3 +31,7 @@ class TrmItem(BaseModel):
     conversion: str = Field("Monda del pais origen vs pais a comparar")
     moneda_origen: str = Field("Moneda de origen")
     moneda_conversion: str = Field("Moneda del pais a convertir")
+
+class WriterAgentItems(BaseModel):
+    filename: str = Field("Nombre del archivo")
+    content: str = Field("Contenido del reporte en formato markdown")
