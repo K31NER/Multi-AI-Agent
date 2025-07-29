@@ -24,7 +24,6 @@ class WeatherItem(BaseModel):
     nubes: str = Field("Porcenaje de nubes")
     radiacion_uv: str = Field("Nivel de radiacion solar")
     presion: str = Field("Nivel de presion")
-    humedad: str = Field("Porcentaje de humedad")
     
 class TrmItem(BaseModel):
     titulo: str = Field("Descripcion del tipo de conversion")
@@ -35,3 +34,8 @@ class TrmItem(BaseModel):
 class WriterAgentItems(BaseModel):
     filename: str = Field("Nombre del archivo")
     content: str = Field("Contenido del reporte en formato markdown")
+    
+class BitcointItem(BaseModel):
+    conversion: str = Field("Tasa de conversion de la moneda del pais a bitcoint")
+    description: str = Field("Breve descripcion del esto del bitcoint en ese pais")
+    

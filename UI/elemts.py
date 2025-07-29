@@ -53,8 +53,8 @@ def add_sidebar():
         
         multi_tool = st.toggle("Multi Tools",value=False,help="Permite al modelo usar mas de una herramienta a la vez",key="multi_tool")
                 
-        if st.button("Limpiar historial",key="clean"):
-            clean_session(borrar=True)
+        #if st.button("Limpiar chat",key="clean"):
+        #    clean_session(borrar=True)
             
         st.subheader("Estetica",divider="red")
         

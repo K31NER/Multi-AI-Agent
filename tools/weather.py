@@ -1,7 +1,7 @@
 from pydantic_ai import Tool
 from schemas.tools_schemas import WeatherItem
-from playwright.sync_api import sync_playwright
-
+from playwright.sync_api import sync_playwright , TimeoutError
+    
 URL_BASE = "https://www.clima.com/colombia"
         
 # Bloquea el contenido innecesaro
@@ -51,45 +51,51 @@ def get_weather(departamento:str , ciudad: str) -> WeatherItem:
     #Ajustamos la las entradas
     ciudad_parser = ciudad.replace(" ","-").strip().lower()
     departamento_parser = departamento.replace(" ","-").strip().lower()
-        
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True) # Definimos el navegador
-        page = browser.new_page() # Abrimos una nueva pagina
-        
-        # Bloquemos contenido pesado
-        page.route("**/*", block_resources)
-        
-        # Definimos la url
-        new_url = f"{URL_BASE}/{departamento_parser}/{ciudad_parser}"
-        
-        page.goto(new_url, timeout=60000) # Esperamos que abra la url
-        
-        page.wait_for_selector("section.modules") # Esperamos que carge
-        
-        # Obtenemos los datos
-        ciudad_titulo = page.query_selector("span.text-poppins-bold")
-        temperatura = page.query_selector("span.c-tib-text.degrees")
-        viento = page.query_selector("span.wind-text-value.velocity")
-        
-        # Limpiamos los datos
-        ciudad_clean = ciudad_titulo.inner_text()
-        temperatura_clean = f"{temperatura.inner_text()}"
-        viento_clean = f"{viento.inner_text()} Km/h"
-        humedad, nivel, visibilidad, presion = get_weather_stats(page)
-        
-        # Creamos el objeto
-        weather_data = WeatherItem(
-            ciudad=ciudad_clean,
-            temperatura=temperatura_clean,
-            viento=viento_clean,
-            humedad=humedad,
-            nubes=visibilidad,
-            radiacion_uv=nivel,
-            presion=presion
-        )
-        
-        return weather_data
     
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True) # Definimos el navegador
+            page = browser.new_page() # Abrimos una nueva pagina
+            
+            # Bloquemos contenido pesado
+            page.route("**/*", block_resources)
+            
+            # Definimos la url
+            new_url = f"{URL_BASE}/{departamento_parser}/{ciudad_parser}"
+            
+            page.goto(new_url, timeout=60000) # Esperamos que abra la url
+            
+            page.wait_for_selector("section.modules") # Esperamos que carge
+            
+            # Obtenemos los datos
+            ciudad_titulo = page.query_selector("span.text-poppins-bold")
+            temperatura = page.query_selector("span.c-tib-text.degrees")
+            viento = page.query_selector("span.wind-text-value.velocity")
+            
+            # Limpiamos los datos
+            ciudad_clean = ciudad_titulo.inner_text()
+            temperatura_clean = f"{temperatura.inner_text()}"
+            viento_clean = f"{viento.inner_text()} Km/h"
+            humedad, nivel, visibilidad, presion = get_weather_stats(page)
+            
+            # Creamos el objeto
+            weather_data = WeatherItem(
+                ciudad=ciudad_clean,
+                temperatura=temperatura_clean,
+                viento=viento_clean,
+                humedad=humedad,
+                nubes=visibilidad,
+                radiacion_uv=nivel,
+                presion=presion
+            )
+            
+            return weather_data
+    except TimeoutError:
+        print("El sitio tardo demasiodo en responder")
+        return ["Error al obtener los datos"]
+    except Exception as e:
+        print(f"Error: {e}")
+        return [f"Error: {e}"]
 
 # Definimos la tool
 get_weather_tool = Tool(function=get_weather,
