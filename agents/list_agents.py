@@ -6,6 +6,7 @@ from tools.time import get_time_now_tool
 from tools.conversion import get_trm_tool
 from tools.weather import get_weather_tool
 from tools.writer import writer_report_tool
+from tools.bitcoint import get_bitcoint_tool
 from tools.scan_media import read_media_tool
 from schemas.agent_schema import ResponseModel
 from prompts.clima import CLIMAS_SYSTEM_PROMPT
@@ -54,7 +55,7 @@ def agent_financiero(model) -> Agent:
         model=model,
         output_type=ResponseModel,
         system_prompt=FINANZAS_SYSTEM_PROMPT,
-        tools=[get_trm_tool,read_media_tool,writer_report_tool],
+        tools=[get_trm_tool,read_media_tool,writer_report_tool,get_bitcoint_tool],
         retries=2,
         instrument=True
     )

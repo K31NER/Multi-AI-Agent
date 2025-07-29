@@ -91,6 +91,7 @@ El agente cuenta con un control deslizante que permite ajustar la ventana de con
 ### 💻 Implementación del Manejo de Historia
 
 #### Ejemplo Básico - Solo Último Mensaje
+
 ```python
 import asyncio
 from agent_model import test_agent
@@ -121,11 +122,13 @@ if __name__ == "__main__":
 #### Opciones de Manejo de Historia
 
 **Para obtener TODO el historial:**
+
 ```python
 history = result.all_messages()  # Mantiene todos los mensajes
 ```
 
 **Para una ventana de contexto personalizada (implementación en app.py):**
+
 ```python
 # Numero de mensajes que recuerda
 contexto = 6 
@@ -151,16 +154,19 @@ La fórmula `MAX_HISTORY = (contexto * 3) + 1` se basa en cómo **Pydantic AI** 
 #### 🔍 **Anatomía de un Intercambio en Pydantic AI:**
 
 Para cada interacción usuario-agente, Pydantic AI genera **3 mensajes**:
+
 1. **Mensaje del Usuario** 📝 - La pregunta o solicitud
 2. **Llamada a Herramientas** 🛠️ - Si el agente usa tools (tiempo, noticias, MCP, etc.)
 3. **Respuesta del Agente** 🤖 - La respuesta final procesada
 
 #### 🧮 **Desglose del Cálculo:**
+
 - **`contexto * 3`**: Multiplica por 3 para incluir los 3 tipos de mensaje por cada intercambio
 - **`+ 1`**: Suma 1 para incluir el **System Prompt** inicial que establece las instrucciones base del agente
 
 #### 💡 **Ejemplo Práctico:**
-```
+
+``` python
 contexto = 6 mensajes anteriores
 MAX_HISTORY = (6 * 3) + 1 = 19 mensajes totales
 
